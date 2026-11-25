@@ -1,0 +1,9 @@
+{
+  "name": "考试刷题",
+  "short_name": "考试刷题",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f3f5fa",
+  "theme_color": "#1d2b59",
+  "icons": []
+}

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d2b59">
+<link rel="manifest" href="manifest.json">
+<title>考试刷题</title>
+<style>
+:root{--navy:#1d2b59;--blue:#3867e8;--bg:#f3f5fa;--ink:#1b2337;--muted:#788197;--line:#e3e7f0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:88px}
+header{background:var(--navy);color:white;padding:30px 22px 34px;border-radius:0 0 28px 28px}
+header h1{font-size:30px;margin:0 0 8px}header p{margin:0;color:#c8d1ea;font-size:15px}
+main{max-width:760px;margin:auto;padding:18px 14px}
+.card{background:white;border:1px solid var(--line);border-radius:24px;padding:20px;margin:0 0 16px;box-shadow:0 3px 12px #1c2b5510}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;gap:8px}.stats span{display:block;color:var(--muted);font-size:14px}.stats strong{display:block;font-size:30px;margin-top:4px}
+h2{font-size:21px;margin:0 0 16px}h3{font-size:17px;margin:0 0 8px}
+label{display:block;color:var(--muted);margin:12px 0 7px}
+select,input,textarea{width:100%;font:inherit;border:1px solid var(--line);border-radius:14px;padding:13px;background:white;color:var(--ink)}
+button{border:0;border-radius:15px;padding:13px 18px;font:inherit;font-weight:650;background:var(--blue);color:white;cursor:pointer}
+button.secondary{background:#eef2ff;color:#315bd0}button.ghost{background:#f1f3f8;color:#4b5670}button.danger{background:#fff0f0;color:#b42318}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.actions button{flex:1}
+.progress-row{margin:15px 0}.progress-meta{display:flex;justify-content:space-between;gap:8px;margin-bottom:8px}.progress-meta span:last-child{color:var(--muted);font-size:14px}
+.bar{height:10px;border-radius:20px;background:#e9edf5;overflow:hidden}.bar i{display:block;height:100%;background:var(--blue);border-radius:20px}
+.hidden{display:none!important}.question{font-size:19px;line-height:1.6;white-space:pre-wrap;margin:10px 0 18px}
+.option{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:14px;padding:13px;margin:9px 0;cursor:pointer}
+.option input{width:auto;margin-top:4px}.feedback{padding:13px;border-radius:14px;background:#f2f6ff;margin-top:12px;line-height:1.6}
+.small{font-size:13px;color:var(--muted);line-height:1.6}.pill{display:inline-block;background:#eef2ff;color:#315bd0;padding:5px 10px;border-radius:20px;font-size:12px}
+.list-item{padding:13px 0;border-bottom:1px solid var(--line)}.list-item:last-child{border:0}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:9px 4px calc(9px + env(safe-area-inset-bottom));z-index:5}
+nav button{background:transparent;color:#788197;padding:5px 8px;font-size:12px;flex:1}nav button.active{color:var(--blue)}nav b{display:block;font-size:21px;margin-bottom:2px}
+.bank-card{border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0}.bank-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.bank-title{font-weight:700}.bank-meta{font-size:13px;color:var(--muted);margin-top:5px}.question-manage{border-top:1px solid var(--line);padding:12px 0}.question-manage:last-child{border:0}.filelabel{display:inline-flex;align-items:center;justify-content:center;background:#eef2ff;color:#315bd0;border-radius:14px;padding:12px 15px;font-weight:650;cursor:pointer}
+textarea{min-height:110px}
+</style>
+</head>
+<body>
+<header><h1>考试刷题</h1><p>专注练习 · 记录进度 · 整理错题</p></header>
+<main>
+<section id="home">
+ <div class="card stats"><div><span>累计答题</span><strong id="total">0</strong></div><div><span>总体正确率</span><strong id="rate">0%</strong></div><div><span>错题数量</span><strong id="wrongCount">0</strong></div></div>
+ <div class="card"><h2>学习进度</h2><div id="progress"></div></div>
+ <div class="card"><h2>开始练习</h2><label for="subject">选择题库</label><select id="subject"></select><div class="actions"><button onclick="startQuiz()">开始做题</button><button class="secondary" onclick="startWrong()">复习错题</button></div></div>
+ <div class="card"><h2>快速操作</h2><div class="actions"><button class="secondary" onclick="showTab('bank')">管理题库</button><button class="ghost" onclick="exportData()">导出学习数据</button></div><p class="small">学习记录保存在当前设备的浏览器中。建议定期导出备份。</p></div>
+</section>
+<section id="practice" class="hidden">
+ <div class="card"><div class="progress-meta"><span id="quizSubject" class="pill"></span><span id="qIndex"></span></div><div class="bar"><i id="quizBar" style="width:0%"></i></div><h2 style="margin-top:20px">题目</h2><div id="question" class="question"></div><div id="options"></div><div id="feedback" class="feedback hidden"></div><div class="actions"><button id="submitBtn" onclick="submitAnswer()">提交答案</button><button id="nextBtn" class="secondary hidden" onclick="nextQuestion()">下一题</button></div><button class="ghost" style="width:100%;margin-top:10px" onclick="showTab('home')">退出练习</button></div>
+</section>
+<section id="wrong" class="hidden"><div class="card"><h2>错题本</h2><div id="wrongList"></div><button class="ghost" onclick="clearWrong()">清空错题本</button></div></section>
+<section id="bank" class="hidden">
+ <div class="card"><h2>题库管理</h2><p class="small">可以手动添加选择题，也可以导入 JSON 题库文件。题库格式示例可在下方下载。</p>
+ <label>科目</label><input id="newSubject" placeholder="例如：数学">
+ <label>题目</label><textarea id="newQuestion" placeholder="输入题目内容"></textarea>
+ <label>选项（每行一个，格式：A. 选项内容）</label><textarea id="newOptions" placeholder="A. 选项一&#10;B. 选项二&#10;C. 选项三&#10;D. 选项四"></textarea>
+ <label>正确选项（填写 A/B/C/D）</label><input id="newAnswer" placeholder="例如：B">
+ <label>解析（可选）</label><textarea id="newExplanation" placeholder="填写答案解析"></textarea>
+ <button style="width:100%;margin-top:12px" onclick="addQuestion()">添加题目</button>
+ <div class="actions"><label class="filelabel">导入 JSON 题库<input id="importFile" type="file" accept=".json,application/json" hidden onchange="importQuestions(event)"></label><button class="secondary" onclick="downloadTemplate()">下载题库模板</button></div>
+ <p class="small" id="bankMsg"></p></div>
+ <div class="card"><h2>已保存的题库</h2><p class="small">每次导入会单独保存为一个题库，可查看题目、重命名或删除。删除题库会同时删除其中题目及其答题统计、错题记录。</p><div id="bankList"></div></div>
+</section>
+<section id="settings" class="hidden"><div class="card"><h2>设置与备份</h2><p>所有题目和答题记录目前保存在本机浏览器，不会自动同步到其他设备。</p><div class="actions"><button onclick="exportData()">导出全部数据</button><button class="secondary" onclick="document.getElementById('importFile').click()">导入题库</button></div><p class="small">更换手机或清理浏览器数据前，请先导出备份。</p></div></section>
+</main>
+<nav><button class="active" data-tab="home" onclick="showTab('home')"><b>⌂</b>首页</button><button data-tab="practice" onclick="showTab('practice')"><b>✎</b>练习</button><button data-tab="wrong" onclick="showTab('wrong')"><b>▤</b>错题本</button><button data-tab="bank" onclick="showTab('bank')"><b>＋</b>题库</button><button data-tab="settings" onclick="showTab('settings')"><b>⚙</b>设置</button></nav>
+<script>
+const starter=[
+{id:"demo-m1",subject:"数学",question:"若函数 f(x)=x²，则 f'(x) 等于多少？",options:["A. x","B. 2x","C. x²","D. 2"],answer:"B",explanation:"根据幂函数求导法则，(x²)'=2x。"},
+{id:"demo-e1",subject:"英语",question:"Choose the correct sentence.",options:["A. She go to school every day.","B. She going to school every day.","C. She goes to school every day.","D. She gone to school every day."],answer:"C",explanation:"主语 She 是第三人称单数，一般现在时谓语动词用 goes。"}
+];
+let db=JSON.parse(localStorage.getItem("examQuizDB")||"null")||{questions:starter,stats:{},wrong:[]};
+// 兼容旧版本：把此前没有批次信息的非示例题目归入一个“历史题目”题库。
+db.questions=db.questions||[];db.stats=db.stats||{};db.wrong=db.wrong||[];db.banks=db.banks||[];
+let legacy=db.questions.filter(q=>!String(q.id||"").startsWith("demo-")&&!q.bankId);
+if(legacy.length){let id="legacy-imports";if(!db.banks.some(b=>b.id===id))db.banks.push({id,name:"历史导入题目（旧版本）",createdAt:"旧版本数据",count:legacy.length,legacy:true});legacy.forEach(q=>q.bankId=id);localStorage.setItem("examQuizDB",JSON.stringify(db))}
+let demoQs=db.questions.filter(q=>String(q.id||"").startsWith("demo-")&&!q.bankId);if(demoQs.length){if(!db.banks.some(b=>b.id==="demo"))db.banks.push({id:"demo",name:"示例题目",createdAt:"内置示例"});demoQs.forEach(q=>q.bankId="demo");localStorage.setItem("examQuizDB",JSON.stringify(db))}
+let current=[],idx=0,selected="";
+function save(){localStorage.setItem("examQuizDB",JSON.stringify(db));renderHome();renderBanks()}
+function groups(){let g=db.banks.map(b=>({id:b.id,name:b.name,qs:db.questions.filter(q=>q.bankId===b.id)}));let m=db.questions.filter(q=>q.bankId==="manual");if(m.length)g.push({id:"manual",name:"手动添加的题目",qs:m});return g.filter(x=>x.qs.length)}
+function subjects(){return [...new Set(db.questions.map(q=>q.subject).filter(Boolean))].sort()}
+function letterOf(o,i){let m=/^\s*([A-Za-z])[.、．)\s]/.exec(String(o));return m?m[1].toUpperCase():String.fromCharCode(65+i)}
+function init(){let s=document.getElementById("subject"),old=s.value;s.innerHTML=groups().map(g=>`<option value="${esc(g.id)}">${esc(g.name)}（${g.qs.length}题）</option>`).join("")||'<option value="">暂无题库</option>';if([...s.options].some(o=>o.value===old))s.value=old;renderHome()}
+function esc(x){return String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function renderHome(){
+let attempts=Object.values(db.stats).reduce((a,x)=>a+(x.attempts||0),0),correct=Object.values(db.stats).reduce((a,x)=>a+(x.correct||0),0);
+document.getElementById("total").textContent=attempts;document.getElementById("rate").textContent=(attempts?Math.round(correct/attempts*100):0)+"%";document.getElementById("wrongCount").textContent=db.wrong.length;
+document.getElementById("progress").innerHTML=groups().map(g=>{let s=g.name,qs=g.qs,done=qs.filter(q=>(db.stats[q.id]?.attempts||0)>0).length,ok=qs.reduce((a,q)=>a+(db.stats[q.id]?.correct||0),0),att=qs.reduce((a,q)=>a+(db.stats[q.id]?.attempts||0),0);return `<div class="progress-row"><div class="progress-meta"><strong>${esc(s)}</strong><span>${done}/${qs.length} 题做过 · ${att?Math.round(ok/att*100):0}%正确</span></div><div class="bar"><i style="width:${qs.length?done/qs.length*100:0}%"></i></div></div>`}).join("")||'<p class="small">还没有题目，请先到「题库」添加或导入。</p>';
+renderWrong();
+}
+function showTab(tab){if(tab==="practice"&&!current.length)tab="home";["home","practice","wrong","bank","settings"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==tab));document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));if(tab==="wrong")renderWrong();if(tab==="bank")renderBanks()}
+function startWrong(){if(!db.wrong.length){showTab("wrong");return}current=[...db.wrong];idx=0;showTab("practice");renderQuestion()}
+function startQuiz(){let s=document.getElementById("subject").value;current=db.questions.filter(q=>q.bankId===s);if(!current.length){alert("还没有可练习的题库，请先添加或导入题目。");return}idx=0;showTab("practice");renderQuestion()}
+function renderQuestion(){let q=current[idx];selected="";document.getElementById("quizSubject").textContent=(groups().find(g=>g.id===q.bankId)||{}).name||q.subject;document.getElementById("qIndex").textContent=`${idx+1}/${current.length}`;document.getElementById("quizBar").style.width=((idx+1)/current.length*100)+"%";document.getElementById("question").textContent=q.question;document.getElementById("options").innerHTML=q.options.map((o,i)=>`<label class="option"><input type="radio" name="answer" value="${letterOf(o,i)}" onchange="selected=this.value"><span>${esc(o)}</span></label>`).join("");document.getElementById("feedback").classList.add("hidden");document.getElementById("submitBtn").classList.remove("hidden");document.getElementById("nextBtn").classList.add("hidden")}
+function submitAnswer(){if(!selected){alert("请先选择答案。");return}let q=current[idx],right=selected.toUpperCase()===String(q.answer).toUpperCase(),st=db.stats[q.id]||{attempts:0,correct:0};st.attempts++;if(right)st.correct++;db.stats[q.id]=st;if(!right&&!db.wrong.some(x=>x.id===q.id))db.wrong.push(q);if(right)db.wrong=db.wrong.filter(x=>x.id!==q.id);save();let f=document.getElementById("feedback");f.innerHTML=`<strong>${right?"回答正确":"回答错误，正确答案："+esc(q.answer)}</strong><br>${esc(q.explanation||"暂无解析")}`;f.classList.remove("hidden");document.getElementById("submitBtn").classList.add("hidden");document.getElementById("nextBtn").classList.remove("hidden")}
+function nextQuestion(){if(idx<current.length-1){idx++;renderQuestion()}else{alert("本组题目已完成！");showTab("home")}}
+function renderWrong(){let el=document.getElementById("wrongList");el.innerHTML=db.wrong.length?db.wrong.map((q,i)=>`<div class="list-item"><span class="pill">${esc(q.subject)}</span><p>${esc(q.question)}</p><p class="small">正确答案：${esc(q.answer)}　${esc(q.explanation||"")}</p><button class="secondary" onclick="removeWrong('${esc(q.id)}')">移出错题本</button></div>`).join(""):'<p class="small">还没有错题，继续练习吧。</p>'}
+function removeWrong(id){db.wrong=db.wrong.filter(q=>q.id!==id);save();renderWrong()}
+function clearWrong(){if(confirm("确定清空错题本吗？")){db.wrong=[];save();renderWrong()}}
+function addQuestion(){let subject=document.getElementById("newSubject").value.trim(),question=document.getElementById("newQuestion").value.trim(),options=document.getElementById("newOptions").value.split("\n").map(x=>x.trim()).filter(Boolean),answer=document.getElementById("newAnswer").value.trim().toUpperCase();if(!subject||!question||options.length<2||!answer){alert("请填写科目、题目、至少两个选项和正确答案。");return}let q={id:"q-"+Date.now(),subject,question,options,answer,explanation:document.getElementById("newExplanation").value.trim(),bankId:"manual"};db.questions.push(q);save();document.getElementById("bankMsg").textContent="题目添加成功！";init()}
+function importQuestions(e){let file=e.target.files[0];if(!file)return;let r=new FileReader();r.onload=()=>{try{let data=JSON.parse(r.result),arr=Array.isArray(data)?data:data.questions;if(!Array.isArray(data)&&data&&data.banks&&data.stats&&Array.isArray(data.questions)){if(!confirm("检测到完整备份文件，恢复将覆盖当前所有题库和做题记录，继续吗？"))return;db=data;db.wrong=db.wrong||[];save();init();document.getElementById("bankMsg").textContent="备份已恢复。";return}if(!Array.isArray(arr))throw Error("格式不正确");let bankId="bank-"+Date.now(),name=file.name.replace(/\.json$/i,"")||"导入题库";let normalized=arr.map((q,i)=>({...q,id:"import-"+Date.now()+"-"+i,subject:q.subject||name,options:q.options||[],bankId}));db.banks.push({id:bankId,name,createdAt:new Date().toLocaleString("zh-CN"),count:normalized.length});db.questions.push(...normalized);save();init();document.getElementById("bankMsg").textContent=`成功导入「${name}」：${normalized.length} 道题目。`;renderBanks()}catch(err){alert("导入失败："+err.message)}};r.readAsText(file);e.target.value=""}
+
+function renderBanks(){let el=document.getElementById("bankList");if(!el)return;let banks=[...db.banks];let manual=db.questions.filter(q=>q.bankId==="manual");if(manual.length)banks.push({id:"manual",name:"手动添加的题目",createdAt:"手动添加",count:manual.length});
+if(!banks.length){el.innerHTML='<p class="small">还没有导入或添加题目。</p>';return}
+el.innerHTML=banks.map(b=>{let qs=db.questions.filter(q=>q.bankId===b.id);return `<div class="bank-card"><div class="bank-head"><div><div class="bank-title">${esc(b.name)}</div><div class="bank-meta">${qs.length} 道题 · ${esc(b.createdAt||"")}</div></div><span class="pill">${b.legacy?"历史数据":"题库"}</span></div><div class="actions"><button class="secondary" onclick="toggleBank('${esc(b.id)}')">查看题目</button>${b.id!=="manual"?`<button class="ghost" onclick="renameBank('${esc(b.id)}')">重命名</button>`:""}<button class="danger" onclick="deleteBank('${esc(b.id)}')">${b.id==="manual"?"删除全部":"删除题库"}</button></div><div id="bank-questions-${esc(b.id)}" class="hidden">${qs.map(q=>`<div class="question-manage"><strong>${esc(q.subject)}</strong><p>${esc(q.question)}</p><div class="small">正确答案：${esc(q.answer)}</div><button class="danger" style="margin-top:8px" onclick="deleteQuestion('${esc(q.id)}')">删除这道题</button></div>`).join("")||'<p class="small">这个题库暂无题目。</p>'}</div></div>`}).join("")}
+function toggleBank(id){let el=document.getElementById("bank-questions-"+id);if(el)el.classList.toggle("hidden")}
+function renameBank(id){let b=db.banks.find(x=>x.id===id);if(!b)return;let name=prompt("请输入新的题库名称：",b.name);if(name&&name.trim()){b.name=name.trim();save();init()}}
+function deleteBank(id){let b=db.banks.find(x=>x.id===id);let name=b?.name||(id==="manual"?"手动添加的题目":"该题库");if(!confirm(`确定删除「${name}」及其中全部题目吗？此操作不可撤销。`))return;let ids=db.questions.filter(q=>q.bankId===id).map(q=>q.id);db.questions=db.questions.filter(q=>q.bankId!==id);db.banks=db.banks.filter(x=>x.id!==id);ids.forEach(qid=>delete db.stats[qid]);db.wrong=db.wrong.filter(q=>!ids.includes(q.id));save();init()}
+function deleteQuestion(id){let q=db.questions.find(x=>x.id===id);if(!q||!confirm("确定删除这道题吗？对应答题统计和错题记录也会删除。"))return;db.questions=db.questions.filter(x=>x.id!==id);delete db.stats[id];db.wrong=db.wrong.filter(x=>x.id!==id);let b=db.banks.find(x=>x.id===q.bankId);if(b)b.count=db.questions.filter(x=>x.bankId===b.id).length;save();init()}
+
+function downloadTemplate(){let sample=[{subject:"数学",question:"题目内容",options:["A. 选项一","B. 选项二","C. 选项三","D. 选项四"],answer:"B",explanation:"答案解析"}];download("题库模板.json",JSON.stringify(sample,null,2))}
+function exportData(){download("考试刷题备份.json",JSON.stringify(db,null,2))}
+function download(name,content){let a=document.createElement("a"),url=URL.createObjectURL(new Blob([content],{type:"application/json"}));a.href=url;a.download=name;a.click();URL.revokeObjectURL(url)}
+init();
+if("serviceWorker" in navigator)window.addEventListener("load",()=>{let rl=0;navigator.serviceWorker.addEventListener("controllerchange",()=>{if(rl)return;rl=1;location.reload()});navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{})});
+</script>
+</body></html>

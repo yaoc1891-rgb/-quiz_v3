@@ -1,0 +1,26 @@
+[
+  {
+    "subject": "数学",
+    "question": "若函数 f(x)=x²，则 f'(x) 等于多少？",
+    "options": [
+      "A. x",
+      "B. 2x",
+      "C. x²",
+      "D. 2"
+    ],
+    "answer": "B",
+    "explanation": "根据幂函数求导法则，(x²)'=2x。"
+  },
+  {
+    "subject": "英语",
+    "question": "Choose the correct sentence.",
+    "options": [
+      "A. She go to school every day.",
+      "B. She going to school every day.",
+      "C. She goes to school every day.",
+      "D. She gone to school every day."
+    ],
+    "answer": "C",
+    "explanation": "主语 She 是第三人称单数，一般现在时谓语动词用 goes。"
+  }
+]
